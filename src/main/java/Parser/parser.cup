@@ -1,0 +1,261 @@
+import java_cup.runtime.*;
+import java.io.*;
+
+parser code {:
+   public static void main( String[] args)
+   {
+      try
+	  {
+		   FileReader file = new FileReader( args[0] );
+		   Scanner scanner = new MPLexer( file );
+		   MPParser parser = new MPParser( scanner );
+		   parser.parse();
+	  }
+	  catch( Exception e )
+	  {
+          e.printStackTrace();
+		   System.out.println(e);
+	  }
+   }
+:};
+
+//Terminals
+terminal POCETAK, PLUS, PUTA;
+terminal TACKAZAREZ, ZAREZ, TACKA, DVETACKE, JEDNAKO, OTVORENAZAGRADA, ZATVORENAZAGRADA, OTVORENAVELIKA, ZATVORENAVELIKA, CRTICA, KOMPOCETAK, KOMKRAJ;
+terminal PROM, BROJ, SLOVO, CITAJ, ISPIS, ID, KONST, JE;
+
+//Non-terminals
+non terminal program, blok, listaprom, deklaracijaprom, listaimena, tip, listanaredbi, naredba, ulaz, izlaz, dodela, izraz, pizraz, fizraz;
+
+//Gramatika
+program ::= POCETAK OTVORENAZAGRADA ZATVORENAZAGRADA blok
+    {:
+        System.out.println( "Redukcija po smeni 1.");
+    :}
+    | POCETAK OTVORENAZAGRADA error
+        {:
+            System.out.println( "Nedostaje zatvorena zagrada.");
+            System.out.close();
+        :}
+    | POCETAK error
+        {:
+            System.out.println( "Nedostaje otvorena zagrada.");
+            System.out.close();
+        :};
+
+blok ::= OTVORENAVELIKA PROM DVETACKE listaprom listanaredbi ZATVORENAVELIKA
+    {:
+        System.out.println("Redukcija po smeni 2.");
+    :}
+    | OTVORENAVELIKA listaprom listanaredbi error
+    {:
+        System.out.println("Nedostaje zatvorena velika zagrada.");
+        System.out.close();
+    :}
+    | OTVORENAVELIKA PROM error
+    {:
+        System.out.print("Nedostaje dvotacka nakon prom.");
+    :};
+
+listaprom ::= listaprom deklaracijaprom
+    {:
+        System.out.println("Redukcija po smeni 3.");
+    :}
+    | deklaracijaprom
+    {:
+        System.out.println("Redukcija po smeni 4.");
+    :}
+    | listaprom error
+    {:
+        System.out.println("Nedostaje deklaracija promenljivih.");
+        System.out.close();
+    :};
+
+deklaracijaprom ::= listaimena JE tip TACKAZAREZ
+    {:
+        System.out.println("Redukcija po smeni 5.");
+    :}
+    | listaimena JE tip error
+    {:
+        System.out.println("Nedostaje tacka zarez nakon tipa promenljive.");
+    :}
+    | listaimena JE error
+    {:
+        System.out.println("Nevalidan tip promenljive.");
+    :}
+    | listaimena error
+    {:
+        System.out.println("Nedostaje kljucna rec 'je' nakon promenljive.");
+    :};
+
+listaimena ::= listaimena ZAREZ ID
+    {:
+        System.out.println("Redukcija po smeni 6.");
+    :}
+    | ID
+    {:
+        System.out.println("Redukcija po smeni 7.");
+    :}
+    | listaimena ZAREZ error
+    {:
+        System.out.println("Nedostaje promenljiva nakon zareza.");
+        System.out.close();
+    :};
+
+tip ::= BROJ
+    {:
+        System.out.println("Redukcija po smeni 8.");
+    :}
+    | SLOVO
+    {:
+        System.out.println("Redukcija po smeni 9.");
+    :}
+    | error
+    {:
+        System.out.println("Nevalidan tip podatka.");
+        System.out.close();
+    :};
+
+listanaredbi ::= listanaredbi naredba
+    {:
+        System.out.println("Redukcija po smeni 10.");
+    :}
+    | naredba
+    {:
+        System.out.println("Redukcija po smeni 11.");
+    :};
+
+naredba ::= ulaz
+    {:
+        System.out.println("Redukcija po smeni 12.");
+    :}
+    | izlaz
+    {:
+        System.out.println("Redukcija po smeni 13.");
+    :}
+    | dodela
+    {:
+        System.out.println("Redukcija po smeni 14.");
+    :}
+    | error
+    {:
+        System.out.println("Nevalidna naredba.");
+        System.out.close();
+    :};
+
+ulaz ::= CITAJ OTVORENAZAGRADA ID ZATVORENAZAGRADA TACKAZAREZ
+    {:
+        System.out.println("Redukcija po smeni 15.");
+    :}
+    | CITAJ OTVORENAZAGRADA ID ZATVORENAZAGRADA error
+    {:
+        System.out.println("Nedostaje tacka zarez nakon zatvorene zagrade.");
+        System.out.close();
+    :}
+    | CITAJ OTVORENAZAGRADA ID error
+    {:
+        System.out.println("Nedostaje zatvorena zagrada nakon promenljive.");
+        System.out.close();
+    :}
+    | CITAJ OTVORENAZAGRADA error
+    {:
+        System.out.println("Nedostaje promenljiva u telu funkcije.");
+        System.out.close();
+    :}
+    | CITAJ error
+    {:
+        System.out.println("Nedostaje otvorena zagrada.");
+        System.out.close();
+    :};
+
+izlaz ::= ISPIS OTVORENAZAGRADA ID ZATVORENAZAGRADA TACKAZAREZ
+    {:
+        System.out.println("Redukcija po smeni 16.");
+    :}
+    | ISPIS OTVORENAZAGRADA ID ZATVORENAZAGRADA error
+    {:
+        System.out.println("Nedostaje tacka zarez nakon zatvorene zagrade.");
+        System.out.close();
+    :}
+    | ISPIS OTVORENAZAGRADA ID error
+    {:
+        System.out.println("Nedostaje zatvorena zagrada nakon promenljive.");
+        System.out.close();
+    :}
+    | ISPIS OTVORENAZAGRADA error
+    {:
+        System.out.println("Nedostaje promenljiva u telu funkcije.");
+        System.out.close();
+    :}
+    | ISPIS error
+    {:
+        System.out.println("Nedostaje otvorena zagrada.");
+        System.out.close();
+    :};
+
+dodela ::= ID JEDNAKO izraz
+    {:
+        System.out.println("Redukcija po smeni 17.");
+    :}
+    | ID JEDNAKO error
+    {:
+        System.out.println("Nedostaje izraz nakon znaka jednakosti.");
+        System.out.close();
+    :}
+    | ID error
+    {:
+        System.out.println("Nedostaje znak jednakosti pri dodeli.");
+        System.out.close();
+    :};
+
+izraz ::= izraz PLUS pizraz
+    {:
+        System.out.println("Redukcija po smeni 18.");
+    :}
+    | pizraz
+    {:
+        System.out.println("Redukcija po smeni 19.");
+    :}
+    | izraz PLUS error
+    {:
+        System.out.println("Nedostaje izraz nakon znaka plus.");
+        System.out.close();
+    :};
+
+pizraz ::= pizraz PUTA fizraz
+    {:
+        System.out.println("Redukcija po smeni 20.");
+    :}
+    | fizraz
+    {:
+        System.out.println("Redukcija po smeni 21.");
+    :}
+    | pizraz PUTA error
+    {:
+        System.out.println("Nedostaje izraz nakon znaka puta.");
+        System.out.close();
+    :};
+
+fizraz ::= ID
+    {:
+        System.out.println("Redukcija po smeni 22.");
+    :}
+    | KONST
+    {:
+        System.out.println("Redukcija po smeni 23.");
+    :}
+    | OTVORENAZAGRADA izraz ZATVORENAZAGRADA
+    {:
+        System.out.println("Redukcija po smeni 24.");
+    :}
+    | OTVORENAZAGRADA izraz error
+    {:
+        System.out.println("Nedostaje zatvorena zagrada nakon izraza.");
+        System.out.close();
+    :}
+    | OTVORENAZAGRADA error
+    {:
+        System.out.println("Nedostaje izraz nakon otvorene zagrade.");
+        System.out.close();
+    :};
+
